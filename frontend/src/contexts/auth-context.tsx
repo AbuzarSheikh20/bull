@@ -1,28 +1,10 @@
 "use client"
 
 import { useRouter } from "next/navigation"
-import type React from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { User, UserData } from "@/types/user";
 import apiClient from "@/lib/api-client"
 import { toast } from "sonner"
-
-type User = {
-  id: string
-  _id?: string
-  email: string
-  fullName: string
-  name?: string
-  gender: string
-  role: "client" | "motivator" | "admin"
-  status?: "active" | "inactive" | "pending"
-  joinDate?: string
-  messageCount?: number
-  responseCount?: number
-  bio: string
-  specialities: string
-  profilePicture?: string
-  profilePhoto?: string
-}
 
 type AuthContextType = {
   user: User | null
@@ -31,7 +13,7 @@ type AuthContextType = {
   error: string | null
   setUser: (user: User | null) => void
   login: (email: string, password: string) => Promise<User | undefined>
-  signup: (userData: any) => Promise<User | undefined>
+  signup: (userData: UserData) => Promise<User | undefined>
   logout: () => Promise<void>
   setError: React.Dispatch<React.SetStateAction<string | null>>
   setIsAuthenticated: (isAuthenticated: boolean) => void
@@ -40,21 +22,21 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 // Helper function to extract user data from various response structures
-const extractUserDataFromResponse = (response: any): any => {
+const extractUserDataFromResponse = (response: unknown): unknown => {
   console.log("🔍 Full backend response structure:", {
-    status: response?.status,
-    statusText: response?.statusText,
-    data: response?.data,
-    headers: response?.headers,
+    status: (response as any)?.status,
+    statusText: (response as any)?.statusText,
+    data: (response as any)?.data,
+    headers: (response as any)?.headers,
   })
 
   // Try different possible structures
   const possiblePaths = [
-    response?.data?.data, // response.data.data
-    response?.data?.user, // response.data.user
-    response?.data?.message, // <-- ADDED: response.data.message
-    response?.data, // response.data
-    response?.user, // response.user
+    (response as any)?.data?.data, // response.data.data
+    (response as any)?.data?.user, // response.data.user
+    (response as any)?.data?.message, // <-- ADDED: response.data.message
+    (response as any)?.data, // response.data
+    (response as any)?.user, // response.user
     response, // response itself
   ]
 
@@ -72,12 +54,12 @@ const extractUserDataFromResponse = (response: any): any => {
   }
 
   console.log("❌ No user data found in any expected path")
-  console.log("🔍 Available keys in response.data:", Object.keys(response?.data || {}))
+  console.log("🔍 Available keys in response.data:", Object.keys((response as any)?.data || {}))
   return null
 }
 
 // Helper function to normalize user data with better debugging
-const normalizeUserData = (userData: any, source = "unknown"): User => {
+const normalizeUserData = (userData: unknown): User => {
   // console.log(`🔍 Normalizing user data from ${source}:`, userData)
 
   if (!userData || typeof userData !== "object") {
@@ -86,20 +68,20 @@ const normalizeUserData = (userData: any, source = "unknown"): User => {
   }
 
   const normalized = {
-    id: userData._id || userData.id || "",
-    _id: userData._id,
-    email: userData.email || "",
-    fullName: userData.fullName || userData.name || "",
-    name: userData.name || userData.fullName,
-    gender: userData.gender || "male",
-    role: (userData.role as "client" | "motivator" | "admin") || "client",
-    status: (userData.status as "active" | "inactive" | "pending") || "active",
-    joinDate: userData.joinDate,
-    messageCount: userData.messageCount,
-    responseCount: userData.responseCount,
-    bio: userData.bio || "",
-    specialities: userData.specialities || "",
-    profilePicture: userData.profilePicture || userData.profilePhoto,
+    id: (userData as any)._id || (userData as any).id || "",
+    _id: (userData as any)._id,
+    email: (userData as any).email || "",
+    fullName: (userData as any).fullName || (userData as any).name || "",
+    name: (userData as any).name || (userData as any).fullName,
+    gender: (userData as any).gender || "male",
+    role: ((userData as any).role as "client" | "motivator" | "admin") || "client",
+    status: ((userData as any).status as "active" | "inactive" | "pending") || "active",
+    joinDate: (userData as any).joinDate,
+    messageCount: (userData as any).messageCount,
+    responseCount: (userData as any).responseCount,
+    bio: (userData as any).bio || "",
+    specialities: (userData as any).specialities || "",
+    profilePicture: (userData as any).profilePicture || (userData as any).profilePhoto,
   }
 
   // console.log(`✅ Normalized user data:`, normalized)
@@ -159,7 +141,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.log("✅ Extracted user data:", backendUserData)
 
             try {
-              const normalizedUser = normalizeUserData(backendUserData, "backend-fresh")
+              const normalizedUser = normalizeUserData(backendUserData)
 
               setUser(normalizedUser)
               setIsAuthenticated(true)
@@ -175,12 +157,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             console.warn("⚠️ No user data found in backend response, using stored data")
             // Use stored data as fallback
             const userData = JSON.parse(storedUser)
-            const normalizedUser = normalizeUserData(userData, "stored-fallback")
+            const normalizedUser = normalizeUserData(userData)
             setUser(normalizedUser)
             setIsAuthenticated(true)
             console.log("✅ Using stored user data:", normalizedUser)
           }
-        } catch (backendError) {
+        } catch (backendError: unknown) {
           console.error("❌ Backend verification failed:", backendError)
 
           // Check if it's a 401 (unauthorized) error
@@ -188,7 +170,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             typeof backendError === "object" &&
             backendError !== null &&
             "response" in backendError &&
-            (backendError as any).response?.status === 401
+            (backendError as { response?: { status: number } }).response?.status === 401
           ) {
             console.log("🔒 Token is invalid/expired, clearing auth data")
             localStorage.removeItem("token")
@@ -206,7 +188,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const userData = JSON.parse(storedUser)
             console.log("🔍 Stored user data:", userData)
 
-            const normalizedUser = normalizeUserData(userData, "stored-fallback")
+            const normalizedUser = normalizeUserData(userData)
 
             setUser(normalizedUser)
             setIsAuthenticated(true)
@@ -221,7 +203,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsAuthenticated(false)
           }
         }
-      } catch (error) {
+      } catch (error: unknown) {
         console.error("❌ Error during authentication check:", error)
         setUser(null)
         setIsAuthenticated(false)
@@ -247,7 +229,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw new Error("Invalid login response: user data missing")
       }
 
-      const normalizedUser = normalizeUserData(data.user, "login")
+      const normalizedUser = normalizeUserData(data.user)
 
       // Store token and user data
       localStorage.setItem("token", data.accessToken)
@@ -274,17 +256,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return normalizedUser
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Login error:", error)
       let errorMessage = "Login failed"
-      const resData = error.response?.data
+      const resData = (error as any).response?.data
 
       if (typeof resData === "string" && resData.includes("Your motivator account is in pending approval")) {
         errorMessage = "Your motivator account is in pending approval"
       } else if (typeof resData === "object" && resData?.message) {
         errorMessage = resData.message
-      } else if (error.message) {
-        errorMessage = error.message
+      } else if ((error as any).message) {
+        errorMessage = (error as any).message
       }
 
       setError(errorMessage)
@@ -295,7 +277,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const signup = async (userData: any) => {
+  const signup = async (userData: UserData) => {
     setIsLoading(true)
     setError(null)
 
@@ -341,7 +323,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Fix: Backend sends user data in response.data.data.user, not response.data.data
       const { data } = response.data
-      const normalizedUser = normalizeUserData(data.user, "signup")
+      const normalizedUser = normalizeUserData(data.user)
 
       localStorage.setItem("token", data.accessToken)
       localStorage.setItem("user", JSON.stringify(normalizedUser))
@@ -373,9 +355,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
 
       return normalizedUser
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Signup error:", error)
-      const errorMessage = error.response?.data?.message || "Registration failed"
+      const errorMessage = (error as any).response?.data?.message || "Registration failed"
       setError(errorMessage)
       throw error
     } finally {

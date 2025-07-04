@@ -1,5 +1,7 @@
 import { toast } from "sonner";
 import router from "next/router";
+import { apiClient } from "./api-client";
+import { User, UserData, Response } from "@/types/user";
 
 export type Message = {
   id?: number;
@@ -190,95 +192,33 @@ export async function sendMessage(
   }
 }
 
-export async function sendResponse(
+export const sendResponse = async (
   messageId: number,
   content: string,
   file?: File
-): Promise<Message["response"]> {
-  try {
-    const apiUrl =
-      process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1/";
-    const token = localStorage.getItem("token");
-
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
-    
-    if (file) {
-      const formData = new FormData();
-      formData.append("messageId", messageId.toString());
-      formData.append("content", content);
-      formData.append("file", file);
-
-      const response = await fetch(`${apiUrl}responses`, {
-        method: "POST",
-        body: formData,
-        credentials: "include",
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Error Details: `, errorText);
-        throw new Error(`Api Error: ${response.status}`);
-      }
-      const data = await response.json();
-      return data.data;
-    } else {
-      const response = await fetch(`${apiUrl}responses`, {
-        method: "POST",
-        body: JSON.stringify({ messageId, content }),
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error(`Error Details: `, errorText);
-        throw new Error(`Api Error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      return data.data;
-    }
-  } catch (error) {
-    console.error("Error sending response: ", error);
-    throw error instanceof Error ? error : new Error("Error sending response");
+): Promise<Response> => {
+  const formData = new FormData();
+  formData.append("content", content);
+  formData.append("messageId", messageId.toString());
+  if (file) {
+    formData.append("file", file);
   }
-}
 
-export async function updateMotivatorProfile(details: Partial<User>) {
-  try {
-    let apiUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8000/api/v1";
-    apiUrl = apiUrl.replace(/\/$/, ""); // Remove trailing slash if present
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("No authentication token found");
-    }
-    const response = await fetch(`${apiUrl}/auth/update-details`, {
-      method: "POST",
-      credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(details),
-    });
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API error: ${response.status} - ${errorText}`);
-    }
-    const data = await response.json();
-    if (data?.data) {
-      localStorage.setItem("userData", JSON.stringify(data.data));
-    }
-    return data.data;
-  } catch (error) {
-    console.error("Error updating motivator profile:", error);
-    throw error instanceof Error ? error : new Error("Error updating profile");
-  }
-}
+  const response = await apiClient.post("/responses", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+
+  return response.data;
+};
+
+export const updateMotivatorProfile = async (profileData: {
+  fullName?: string;
+  gender?: string;
+  bio?: string;
+  specialities?: string;
+}): Promise<User> => {
+  const response = await apiClient.put("/users/profile", profileData);
+  return response.data;
+};

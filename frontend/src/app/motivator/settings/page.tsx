@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/auth-context";
+import { ProtectedRoute } from "@/components/protected-route";
 import {
   Card,
   CardContent,
@@ -9,20 +9,19 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { toast } from "sonner";
-import { useAuth } from "@/contexts/auth-context";
+import { Bell, Shield, Moon, Sun } from "lucide-react";
 
-export default function MotivatorSetting() {
-  const { user } = useAuth();
-
-
+export default function MotivatorSettings() {
+  const { logout } = useAuth();
 
   const saveSetting = () => {
-    toast("Your settings have been saved successfully");
+    // toast("Your settings have been saved successfully"); // Removed toast
   };
 
   return (

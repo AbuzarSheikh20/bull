@@ -13,7 +13,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@radix-ui/react-tabs";
 import { toast } from "sonner";
 import { type Message, getMessages, sendMessage } from "../../../lib/api";
-import { useAuth } from "@/contexts/auth-context";
 import { ProtectedRoute } from "@/components/protected-route";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,6 +25,7 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
+import Image from "next/image";
 
 function ClientMessages() {
   const [messages, setMessages] = useState<Message[]>([]); // Telling messages will be an array of 'Message' objects.
@@ -552,7 +552,7 @@ function ClientMessages() {
             </button>
             <div className="text-center text-base font-medium mb-4">{previewFile.message}</div>
             {previewFile.type === "image" && (
-              <img src={String(previewFile.url)} alt="attachment" className="max-w-xs rounded" />
+              <Image src={String(previewFile.url)} alt="attachment" className="max-w-xs rounded" width={300} height={200} />
             )}
             {previewFile.type === "audio" && (
               <audio controls src={String(previewFile.url)} className="w-full" />

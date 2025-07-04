@@ -2,10 +2,11 @@
 import Link from "next/link";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import React from "react";
+import { User } from "@/types/user";
 
 export function MotivatorTopbar() {
   // Always get the latest user data from localStorage
-  const [user, setUser] = React.useState<any>(null);
+  const [user, setUser] = React.useState<User | null>(null);
   React.useEffect(() => {
     if (typeof window !== "undefined") {
       const stored = localStorage.getItem("userData");

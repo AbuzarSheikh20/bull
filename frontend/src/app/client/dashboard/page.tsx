@@ -11,7 +11,7 @@ import {
 import { useAuth } from "@/contexts/auth-context";
 import Link from "next/link";
 import { toast } from "sonner";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { type Message, sendMessage } from "../../../lib/api";
 import { ProtectedRoute } from "@/components/protected-route";
@@ -40,7 +40,7 @@ function ClientDashboard() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const router = useRouter();
 
-  const fetchMessages = async (showLoading = true) => {
+  const fetchMessages = useCallback(async (showLoading = true) => {
     try {
       if (showLoading) {
         setLoading(true);
@@ -91,7 +91,7 @@ function ClientDashboard() {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [router]);
 
   const handleRefresh = () => {
     fetchMessages(false);
@@ -138,14 +138,14 @@ function ClientDashboard() {
 
   useEffect(() => {
     fetchMessages();
-  }, [user]);
+  }, [user, fetchMessages]);
 
   // Refresh messages when user changes
   useEffect(() => {
     if (user) {
       fetchMessages();
     }
-  }, [user]);
+  }, [user, fetchMessages]);
 
   // Auto-refresh messages every 30 seconds
   useEffect(() => {
@@ -156,7 +156,7 @@ function ClientDashboard() {
     }, 30000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, [user]);
+  }, [user, fetchMessages]);
 
   // Helper function to check if a message has a response
   const hasResponse = (message: Message) => {
@@ -273,7 +273,7 @@ function ClientDashboard() {
                 <div className="text-center py-4">Loading messages...</div>
               ) : !messages || messages.length === 0 ? (
                 <div className="text-center py-4 text-muted-foreground">
-                  You haven&apos;t sent any messages. Click "New Message" to get
+                  You haven&apos;t sent any messages. Click &quot;New Message&quot; to get
                   started
                 </div>
               ) : (

@@ -31,7 +31,6 @@ export function ProtectedRoute({
       }
 
       // If already on the correct dashboard, don't redirect again
-      const dashboardPath = `/${user.role}/dashboard`;
       if (pathname.startsWith(`/${user.role}`)) {
         setIsAuthorized(true);
         return;
@@ -62,7 +61,6 @@ export function ProtectedRoute({
         }
 
         // If already on the correct dashboard, don't redirect again
-        const dashboardPath = `/${role}/dashboard`;
         if (pathname.startsWith(`/${role}`)) {
           setIsAuthorized(true);
           return;
@@ -83,6 +81,16 @@ export function ProtectedRoute({
         <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
       </div>
     );
+  }
+
+  if (user?.role === "client") {
+    return <>{children}</>;
+  }
+  if (user?.role === "motivator") {
+    return <>{children}</>;
+  }
+  if (user?.role === "admin") {
+    return <>{children}</>;
   }
 
   return <>{children}</>;

@@ -29,7 +29,6 @@ export default function ClientProfile() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
-  const [isEditing, setIsEditing] = useState(false);
 
   const [userData, setUserData] = useState(user);
 
@@ -191,7 +190,7 @@ export default function ClientProfile() {
                 </RadioGroup>
               </div>
               <div className="flex gap-2 justify-end">
-                <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+                <Button type="button" variant="outline">
                   Cancel
                 </Button>
                 <Button type="submit">Save Changes</Button>
