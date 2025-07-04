@@ -2,7 +2,6 @@
 
 import React from "react";
 import { useState, useEffect } from "react";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -23,7 +22,6 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFo
 export default function ClientProfile() {
   const { user, isLoading } = useAuth();
   const router = useRouter();
-  const [isEditing, setIsEditing] = useState(false);
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [password, setPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -31,6 +29,7 @@ export default function ClientProfile() {
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [passwordError, setPasswordError] = useState("");
   const [passwordSuccess, setPasswordSuccess] = useState("");
+  const [isEditing, setIsEditing] = useState(false);
 
   const [userData, setUserData] = useState(user);
 
@@ -50,7 +49,6 @@ export default function ClientProfile() {
 
   const handleSaveProfile = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsEditing(false);
 
     localStorage.setItem("userData", JSON.stringify(userData));
 
@@ -78,7 +76,7 @@ export default function ClientProfile() {
       setNewPassword("");
       setConfirmPassword("");
       setShowPasswordModal(false);
-    } catch (err) {
+    } catch {
       setPasswordError("Failed to change password. Try again.");
     } finally {
       setPasswordLoading(false);

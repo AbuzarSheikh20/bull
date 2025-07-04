@@ -41,6 +41,16 @@ type PendingApplication = {
   reason?: string;
 };
 
+type ApiError = {
+  response?: {
+    status: number;
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+};
+
 // Add a custom event listener to refresh pending applications
 function usePendingApplicationsRefresh(refetch: () => void) {
   useEffect(() => {
@@ -97,7 +107,7 @@ function AdminDashboard() {
         userList = res.data.message;
       }
       const pending = userList.filter(
-        (user: any) => user.role === "motivator" && user.status === "pending"
+        (user: { role: string; status: string }) => user.role === "motivator" && user.status === "pending"
       );
       setPendingApplications(pending);
     } catch {
@@ -109,7 +119,6 @@ function AdminDashboard() {
 
   useEffect(() => {
     fetchPendingApplications();
-    // eslint-disable-next-line
   }, [user]);
 
   usePendingApplicationsRefresh(fetchPendingApplications);
@@ -148,22 +157,23 @@ function AdminDashboard() {
       setSelectedMessageId(null);
 
       toast.success("Response sent successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error sending response:", error);
+      const apiError = error as ApiError;
 
-      if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
+      if (apiError.response) {
+        console.error("Response status:", apiError.response.status);
+        console.error("Response data:", apiError.response.data);
 
-        if (error.response.status === 403) {
+        if (apiError.response.status === 403) {
           toast.error(
             "Access denied. You don't have permission to send responses."
           );
-        } else if (error.response.status === 400) {
+        } else if (apiError.response.status === 400) {
           const errorMessage =
-            error.response.data?.message || "Invalid request";
+            apiError.response.data?.message || "Invalid request";
           toast.error(errorMessage);
-        } else if (error.response.status === 401) {
+        } else if (apiError.response.status === 401) {
           toast.error("Authentication failed. Please login again.");
         } else {
           toast.error("Failed to send response. Please try again.");
@@ -220,7 +230,7 @@ function AdminDashboard() {
   };
 
   // Helper function to get responder name
-  const getResponderName = (response: any) => {
+  const getResponderName = (response: Message["response"]) => {
     if (!response) {
       return "Unknown Responder";
     }
@@ -253,7 +263,7 @@ function AdminDashboard() {
   };
 
   // Helper function to get file type icon and handle file opening
-  const getFileDisplay = (fileUrl: string, isClientFile: boolean = true) => {
+  const getFileDisplay = (fileUrl: string) => {
     const fileName = fileUrl.split('/').pop() || '';
     const fileExtension = fileName.split('.').pop()?.toLowerCase();
     
@@ -515,7 +525,7 @@ function AdminDashboard() {
                             ? "ring-2 ring-primary ring-offset-2"
                             : ""
                         } ${getMessageBackgroundColor(msg)}`}
-                        onClick={() => selectMessage(msg.id)}
+                        onClick={() => typeof msg.id === 'number' ? selectMessage(msg.id) : undefined}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">
@@ -529,7 +539,7 @@ function AdminDashboard() {
                             )}
                           </div>
                           <span className="text-xs text-muted-foreground">
-                            {new Date(msg.date).toLocaleDateString()}
+                            {msg.date ? new Date(msg.date).toLocaleDateString() : "No date"}
                           </span>
                         </div>
                         <div className="mt-2">
@@ -541,7 +551,7 @@ function AdminDashboard() {
                           {msg.fileUrl && (
                             <div className="mt-2">
                               {(() => {
-                                const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.fileUrl, true);
+                                const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.fileUrl);
                                 return (
                                   <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" onClick={handleFileClick}>
                                     <span className="text-blue-600">{fileIcon}</span>
@@ -552,7 +562,7 @@ function AdminDashboard() {
                                 );
                               })()}
                             </div>
-                          )}
+                          )}    
                           {msg.hasResponse && msg.response && (
                             <div className="mt-2 p-2 bg-muted/30 rounded">
                               <p className="text-xs font-medium text-muted-foreground">
@@ -564,7 +574,7 @@ function AdminDashboard() {
                               {msg.response.fileUrl && (
                                 <div className="mt-2">
                                   {(() => {
-                                    const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.response.fileUrl, false);
+                                    const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.response.fileUrl);
                                     return (
                                       <div className="inline-flex items-center gap-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md cursor-pointer" onClick={handleFileClick}>
                                         <span className="text-green-600">{fileIcon}</span>
@@ -611,18 +621,14 @@ function AdminDashboard() {
                           </p>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {selectedMessage
-                            ? new Date(
-                                selectedMessage.date
-                              ).toLocaleDateString()
-                            : ""}
+                          {selectedMessage && selectedMessage.date ? new Date(selectedMessage.date).toLocaleDateString() : ""}
                         </span>
                       </div>
                       <p className="mt-2">{selectedMessage?.content}</p>
                       {selectedMessage?.fileUrl && (
                         <div className="mt-2">
                           {(() => {
-                            const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.fileUrl, true);
+                            const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.fileUrl);
                             return (
                               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" onClick={handleFileClick}>
                                 <span className="text-blue-600">{fileIcon}</span>
@@ -645,11 +651,7 @@ function AdminDashboard() {
                                 {getResponderName(selectedMessage.response)}
                               </p>
                               <span className="text-xs text-muted-foreground">
-                                {selectedMessage.response.date
-                                  ? new Date(
-                                      selectedMessage.response.date
-                                    ).toLocaleDateString()
-                                  : ""}
+                                {selectedMessage && selectedMessage.response && selectedMessage.response.date ? new Date(selectedMessage.response.date).toLocaleDateString() : ""}
                               </span>
                             </div>
                             <p className="text-sm text-blue-700">
@@ -658,7 +660,7 @@ function AdminDashboard() {
                             {selectedMessage.response.fileUrl && (
                               <div className="mt-2">
                                 {(() => {
-                                  const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.response.fileUrl, false);
+                                  const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.response.fileUrl);
                                   return (
                                     <div className="inline-flex items-center gap-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md cursor-pointer" onClick={handleFileClick}>
                                       <span className="text-green-600">{fileIcon}</span>

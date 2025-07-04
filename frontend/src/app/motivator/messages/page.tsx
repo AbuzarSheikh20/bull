@@ -46,7 +46,7 @@ function MotivatorMessages() {
   }, []);
 
   const handleSendResponse = async () => {
-    if (!selectedMessage || !responseContent.trim()) return;
+    if (!selectedMessage || !responseContent.trim() || typeof selectedMessage.id !== 'number') return;
 
     setResponding(true);
 
@@ -139,7 +139,7 @@ function MotivatorMessages() {
   };
 
   // Helper function to get file type icon and handle file opening
-  const getFileDisplay = (fileUrl: string, isClientFile: boolean = true) => {
+  const getFileDisplay = (fileUrl: string) => {
     const fileName = fileUrl.split('/').pop() || '';
     const fileExtension = fileName.split('.').pop()?.toLowerCase();
     
@@ -290,7 +290,7 @@ function MotivatorMessages() {
                                 )}
                               </div>
                               <span className="text-xs text-muted-foreground">
-                                {new Date(message.date).toLocaleDateString()}
+                                {message.date ? new Date(message.date).toLocaleDateString() : "No date"}
                               </span>
                             </div>
                             <div className="mt-2">
@@ -303,7 +303,7 @@ function MotivatorMessages() {
                               {message.fileUrl && (
                                 <div className="mt-2">
                                   {(() => {
-                                    const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(message.fileUrl, true);
+                                    const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(message.fileUrl);
                                     return (
                                       <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" onClick={handleFileClick}>
                                         <span className="text-blue-600">{fileIcon}</span>
@@ -350,7 +350,7 @@ function MotivatorMessages() {
                                 {getMessageStatusText(message)}
                               </Badge>
                               <span className="text-xs text-muted-foreground">
-                                {new Date(message.date).toLocaleDateString()}
+                                {message.date ? new Date(message.date).toLocaleDateString() : "No date"}
                               </span>
                             </div>
                             <div className="mt-2">
@@ -363,7 +363,7 @@ function MotivatorMessages() {
                               {message.fileUrl && (
                                 <div className="mt-2">
                                   {(() => {
-                                    const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(message.fileUrl, true);
+                                    const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(message.fileUrl);
                                     return (
                                       <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" onClick={handleFileClick}>
                                         <span className="text-blue-600">{fileIcon}</span>
@@ -386,7 +386,7 @@ function MotivatorMessages() {
                                   {message.response.fileUrl && (
                                     <div className="mt-2">
                                       {(() => {
-                                        const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(message.response.fileUrl, false);
+                                        const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(message.response.fileUrl);
                                         return (
                                           <div className="inline-flex items-center gap-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md cursor-pointer" onClick={handleFileClick}>
                                             <span className="text-green-600">{fileIcon}</span>
@@ -431,7 +431,7 @@ function MotivatorMessages() {
                             From: Anonymous User
                           </p>
                           <p className="text-xs text-muted-foreground mt-1">
-                            {new Date(selectedMessage.date).toLocaleDateString()}
+                            {selectedMessage.date ? new Date(selectedMessage.date).toLocaleDateString() : "No date"}
                           </p>
                         </div>
                       </div>
@@ -441,12 +441,12 @@ function MotivatorMessages() {
                       {selectedMessage.fileUrl && (
                         <div className="mt-3">
                           {(() => {
-                            const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.fileUrl, true);
+                            const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.fileUrl);
                             return (
                               <div className="inline-flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" onClick={handleFileClick}>
                                 <span className="text-blue-600">{fileIcon}</span>
                                 <span className="text-sm text-blue-600 hover:text-blue-800 font-medium">
-                                  Client's {fileType}: {fileName}
+                                  Client&apos;s {fileType}: {fileName}
                                 </span>
                               </div>
                             );
@@ -462,10 +462,7 @@ function MotivatorMessages() {
                               Response by: You
                             </p>
                             <span className="text-xs text-muted-foreground">
-                              {selectedMessage.response.date
-                                ? new Date(selectedMessage.response.date).toLocaleDateString()
-                                : "Recently"
-                              }
+                              {selectedMessage.response?.date ? new Date(selectedMessage.response.date).toLocaleDateString() : "Recently"}
                             </span>
                           </div>
                           <p className="text-sm text-blue-700">
@@ -474,7 +471,7 @@ function MotivatorMessages() {
                           {selectedMessage.response.fileUrl && (
                             <div className="mt-2">
                               {(() => {
-                                const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.response.fileUrl, false);
+                                const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.response.fileUrl);
                                 return (
                                   <div className="inline-flex items-center gap-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md cursor-pointer" onClick={handleFileClick}>
                                     <span className="text-green-600">{fileIcon}</span>

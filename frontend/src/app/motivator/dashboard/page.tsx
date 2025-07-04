@@ -65,26 +65,7 @@ function MotivatorDashboard() {
     return "bg-gray-50 border-gray-200 hover:bg-gray-100"; // Default fallback
   };
 
-  // Helper function to get message status text
-  const getMessageStatusText = (message: Message) => {
-    if (!message.hasResponse) {
-      return "No Response";
-    }
-    
-    if (message.response) {
-      const responderId = typeof message.response.motivatorId === 'object' 
-        ? message.response.motivatorId._id 
-        : message.response.motivatorId;
-      
-      if (user?.id === responderId) {
-        return "You Responded";
-      } else {
-        return "Responded by Others";
-      }
-    }
-    
-    return "Unknown Status";
-  };
+
 
   return (
     <>
@@ -173,17 +154,19 @@ function MotivatorDashboard() {
               ) : (
                 <div className="space-y-4">
                   {newMessages.slice(0, 3).map((message) => (
-                    <Card key={message.id.toString()} className={getMessageBackgroundColor(message)}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start justify-between items-start mb-2">
-                          <div className="font-medium">Anonymous User</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(message.date).toLocaleDateString()}
+                    message.id !== undefined && (
+                      <Card key={message.id.toString()} className={getMessageBackgroundColor(message)}>
+                        <CardContent className="p-4">
+                          <div className="flex items-start justify-between items-start mb-2">
+                            <div className="font-medium">Anonymous User</div>
+                            <div className="text-xs text-muted-foreground">
+                              {message.date ? new Date(message.date).toLocaleDateString() : "No date"}
+                            </div>
                           </div>
-                        </div>
-                        <p className="text-sm">{message.content}</p>
-                      </CardContent>
-                    </Card>
+                          <p className="text-sm">{message.content}</p>
+                        </CardContent>
+                      </Card>
+                    )
                   ))}
                   {messages.length > 3 && (
                     <div className="text-center">
@@ -216,26 +199,28 @@ function MotivatorDashboard() {
               ) : (
                 <div className="space-y-4">
                   {respondedMessages.slice(0, 3).map((message) => (
-                    <Card key={message.id} className={getMessageBackgroundColor(message)}>
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="font-medium">Anonymous User</div>
-                          <div className="text-xs text-muted-foreground">
-                            {new Date(message.date).toLocaleDateString()}
+                    message.id !== undefined && (
+                      <Card key={message.id} className={getMessageBackgroundColor(message)}>
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="font-medium">Anonymous User</div>
+                            <div className="text-xs text-muted-foreground">
+                              {message.date ? new Date(message.date).toLocaleDateString() : "No date"}
+                            </div>
                           </div>
-                        </div>
-                        <p className="text-sm line-clamp-1">
-                          {message.content}
-                        </p>
-                        {message.response && (
-                          <div className="bg-white/50 p-2 rounded-md mt-2 border">
-                            <p className="text-xs line-clamp-2">
-                              {message.response.content}
-                            </p>
-                          </div>
-                        )}
-                      </CardContent>
-                    </Card>
+                          <p className="text-sm line-clamp-1">
+                            {message.content}
+                          </p>
+                          {message.response && (
+                            <div className="bg-white/50 p-2 rounded-md mt-2 border">
+                              <p className="text-xs line-clamp-2">
+                                {message.response.content}
+                              </p>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
                   ))}
                   {respondedMessages.length > 3 && (
                     <div className="text-center">

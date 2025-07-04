@@ -16,6 +16,13 @@ import { Button } from "./ui/button";
 import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle, SheetDescription } from "./ui/sheet";
 import { useAuth } from "@/contexts/auth-context";
 
+type Route = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  active: boolean;
+};
+
 export function MobileNav({
   role,
 }: {
@@ -25,7 +32,7 @@ export function MobileNav({
   const { logout } = useAuth();
   const [open, setOpen] = useState(false);
 
-  let routes: any[] = [];
+  let routes: Route[] = [];
   if (role === "client") {
     routes = [
       {

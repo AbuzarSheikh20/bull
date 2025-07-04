@@ -58,7 +58,7 @@ export default function SignupPage() {
     profilePhoto: null as File | null,
   });
 
-  const handleClientSubmit = async (e: any) => {
+  const handleClientSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Password match

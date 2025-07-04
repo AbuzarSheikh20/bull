@@ -30,6 +30,16 @@ import { type Message, getMessages, sendResponse } from "../../../lib/api";
 import { useAuth } from "@/contexts/auth-context";
 import { ProtectedRoute } from "@/components/protected-route";
 
+type ApiError = {
+  response?: {
+    status: number;
+    data?: {
+      message?: string;
+    };
+  };
+  message?: string;
+};
+
 function AdminMessages() {
   const { user, logout } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -95,22 +105,23 @@ function AdminMessages() {
       setSelectedMessageId(null);
 
       toast.success("Response sent successfully!");
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Error sending response:", error);
+      const apiError = error as ApiError;
 
-      if (error.response) {
-        console.error("Response status:", error.response.status);
-        console.error("Response data:", error.response.data);
+      if (apiError.response) {
+        console.error("Response status:", apiError.response.status);
+        console.error("Response data:", apiError.response.data);
 
-        if (error.response.status === 403) {
+        if (apiError.response.status === 403) {
           toast.error(
             "Access denied. You don't have permission to send responses."
           );
-        } else if (error.response.status === 400) {
+        } else if (apiError.response.status === 400) {
           const errorMessage =
-            error.response.data?.message || "Invalid request";
+            apiError.response.data?.message || "Invalid request";
           toast.error(errorMessage);
-        } else if (error.response.status === 401) {
+        } else if (apiError.response.status === 401) {
           toast.error("Authentication failed. Please login again.");
         } else {
           toast.error("Failed to send response. Please try again.");
@@ -129,10 +140,12 @@ function AdminMessages() {
     }
   };
 
-  const selectMessage = (id: number) => {
-    setSelectedMessageId(id);
-    setResponse("");
-    setSelectedFile(null);
+  const selectMessage = (id: number | undefined) => {
+    if (id) {
+      setSelectedMessageId(id);
+      setResponse("");
+      setSelectedFile(null);
+    }
   };
 
   const newMessages = messages.filter((msg) => !msg.hasResponse);
@@ -167,7 +180,7 @@ function AdminMessages() {
   };
 
   // Helper function to get responder name
-  const getResponderName = (response: any) => {
+  const getResponderName = (response: Message["response"]) => {
     if (!response) {
       return "Unknown Responder";
     }
@@ -200,7 +213,7 @@ function AdminMessages() {
   };
 
   // Helper function to get file type icon and handle file opening
-  const getFileDisplay = (fileUrl: string, isClientFile: boolean = true) => {
+  const getFileDisplay = (fileUrl: string) => {
     const fileName = fileUrl.split('/').pop() || '';
     const fileExtension = fileName.split('.').pop()?.toLowerCase();
     
@@ -259,7 +272,7 @@ function AdminMessages() {
           document.body.appendChild(link);
           link.click();
           document.body.removeChild(link);
-        } catch (err) {
+        } catch {
           toast.error('Could not download PDF. ', { action: { label: 'Download', onClick: () => window.open(fileUrl, '_blank') } });
         }
       } else {
@@ -295,28 +308,25 @@ function AdminMessages() {
       }
     }
     
-    return "bg-gray-50 border-gray-200 hover:bg-gray-100"; // Default fallback
+    return "bg-gray-50 border-gray-200 hover:bg-gray-100"; // Default gray
   };
 
   // Helper function to get message status text
   const getMessageStatusText = (message: Message) => {
     if (!message.hasResponse) {
-      return "No Response";
+      return "New";
     }
-    
-    if (message.response) {
-      const responderId = typeof message.response.motivatorId === 'object' 
-        ? message.response.motivatorId._id 
-        : message.response.motivatorId;
-      
-      if (user?.id === responderId) {
-        return "You Responded";
-      } else {
-        return "Responded by Others";
-      }
+    return "Responded";
+  };
+
+  // Helper function to safely format date
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return "No date";
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch {
+      return "Invalid date";
     }
-    
-    return "Unknown Status";
   };
 
   // Debug logging
@@ -527,7 +537,7 @@ function AdminMessages() {
                                   ? "ring-2 ring-primary ring-offset-2"
                                   : ""
                               } ${getMessageBackgroundColor(msg)}`}
-                              onClick={() => selectMessage(msg.id)}
+                              onClick={() => msg.id !== undefined && selectMessage(msg.id)}
                             >
                               <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
@@ -544,7 +554,7 @@ function AdminMessages() {
                                   )}
                                 </div>
                                 <span className="text-xs text-muted-foreground">
-                                  {new Date(msg.date).toLocaleDateString()}
+                                  {msg.date ? formatDate(msg.date) : "No date"}
                                 </span>
                               </div>
                               <div className="mt-2">
@@ -558,7 +568,7 @@ function AdminMessages() {
                                 {msg.fileUrl && (
                                   <div className="mt-2">
                                     {(() => {
-                                      const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.fileUrl, true);
+                                      const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.fileUrl);
                                       return (
                                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" style={{ cursor: 'pointer' }} onClick={handleFileClick}>
                                           <span className="text-blue-600">{fileIcon}</span>
@@ -603,7 +613,7 @@ function AdminMessages() {
                                   {getMessageStatusText(msg)}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground">
-                                  {new Date(msg.date).toLocaleDateString()}
+                                  {msg.date ? formatDate(msg.date) : "No date"}
                                 </span>
                               </div>
                               <div className="mt-2">
@@ -617,7 +627,7 @@ function AdminMessages() {
                                 {msg.fileUrl && (
                                   <div className="mt-2">
                                     {(() => {
-                                      const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.fileUrl, true);
+                                      const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.fileUrl);
                                       return (
                                         <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" style={{ cursor: 'pointer' }} onClick={handleFileClick}>
                                           <span className="text-blue-600">{fileIcon}</span>
@@ -641,7 +651,7 @@ function AdminMessages() {
                                     {msg.response.fileUrl && (
                                       <div className="mt-2">
                                         {(() => {
-                                          const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.response.fileUrl, false);
+                                          const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(msg.response.fileUrl);
                                           return (
                                             <div className="inline-flex items-center gap-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md cursor-pointer" style={{ cursor: 'pointer' }} onClick={handleFileClick}>
                                               <span className="text-green-600">{fileIcon}</span>
@@ -699,18 +709,14 @@ function AdminMessages() {
                           </p>
                         </div>
                         <span className="text-xs text-muted-foreground">
-                          {selectedMessage
-                            ? new Date(
-                                selectedMessage.date
-                              ).toLocaleDateString()
-                            : ""}
+                          {selectedMessage && selectedMessage.date ? new Date(selectedMessage.date).toLocaleDateString() : ""}
                         </span>
                       </div>
                       <p className="mt-2">{selectedMessage?.content}</p>
                       {selectedMessage?.fileUrl && (
                         <div className="mt-2">
                           {(() => {
-                            const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.fileUrl, true);
+                            const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.fileUrl);
                             return (
                               <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 transition-colors cursor-pointer" style={{ cursor: 'pointer' }} onClick={handleFileClick}>
                                 <span className="text-blue-600">{fileIcon}</span>
@@ -733,11 +739,7 @@ function AdminMessages() {
                                 {getResponderName(selectedMessage.response)}
                               </p>
                               <span className="text-xs text-muted-foreground">
-                                {selectedMessage.response.date
-                                  ? new Date(
-                                      selectedMessage.response.date
-                                    ).toLocaleDateString()
-                                  : ""}
+                                {selectedMessage && selectedMessage.response && selectedMessage.response.date ? new Date(selectedMessage.response.date).toLocaleDateString() : ""}
                               </span>
                             </div>
                             <p className="text-sm text-blue-700">
@@ -746,7 +748,7 @@ function AdminMessages() {
                             {selectedMessage.response.fileUrl && (
                               <div className="mt-2">
                                 {(() => {
-                                  const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.response.fileUrl, false);
+                                  const { fileIcon, fileType, fileName, handleFileClick } = getFileDisplay(selectedMessage.response.fileUrl);
                                   return (
                                     <div className="inline-flex items-center gap-2 px-2 py-1 bg-green-50 border border-green-200 rounded-md cursor-pointer" style={{ cursor: 'pointer' }} onClick={handleFileClick}>
                                       <span className="text-green-600">{fileIcon}</span>

@@ -51,7 +51,7 @@ export default function AdminUsers() {
   const [roleFilter, setRoleFilter] = useState<string>("all");
   // Simulate current admin id (replace with real auth context if available)
   const currentAdminId = typeof window !== 'undefined' ? localStorage.getItem('userId') || "" : "";
-  const { logout } = useAuth ? useAuth() : { logout: () => {} };
+  const { logout } = useAuth();
 
   useEffect(() => {
     const fetchUsers = async () => {

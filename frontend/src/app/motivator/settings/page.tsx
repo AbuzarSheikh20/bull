@@ -18,22 +18,8 @@ import { useAuth } from "@/contexts/auth-context";
 
 export default function MotivatorSetting() {
   const { user } = useAuth();
-  const [userData, setUserData] = useState(user);
 
-  useEffect(() => {
-    const storedUserData = localStorage.getItem("userData");
-    if (storedUserData) {
-      try {
-        const parsedData = JSON.parse(storedUserData);
-        setUserData({
-          ...parsedData,
-          name: parsedData.name || parsedData.fullName,
-        });
-      } catch (error) {
-        console.error("Error parsing user data:", error);
-      }
-    }
-  }, []);
+
 
   const saveSetting = () => {
     toast("Your settings have been saved successfully");

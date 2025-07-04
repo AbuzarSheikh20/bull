@@ -24,6 +24,13 @@ import apiClient from "@/lib/api-client";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+// Extend jsPDF type to include autoTable properties
+interface jsPDFWithAutoTable extends jsPDF {
+  lastAutoTable?: {
+    finalY: number;
+  };
+}
+
 type MessageStats = {
   total: number;
   responded: number;
@@ -134,7 +141,7 @@ export default function AdminAnalytics() {
   // Download report as PDF
   const handleDownloadReport = () => {
     if (!userStats || !messageStats) return;
-    const doc = new jsPDF();
+    const doc = new jsPDF() as jsPDFWithAutoTable;
     doc.setFontSize(18);
     doc.text("Analytics Report", 14, 18);
     doc.setFontSize(12);
@@ -157,8 +164,8 @@ export default function AdminAnalytics() {
 
     // Message Stats Table
     autoTable(doc, {
-      startY: (doc as any).lastAutoTable
-        ? (doc as any).lastAutoTable.finalY + 10
+      startY: doc.lastAutoTable
+        ? doc.lastAutoTable.finalY + 10
         : 42,
       head: [["Message Stats", "Value"]],
       body: [

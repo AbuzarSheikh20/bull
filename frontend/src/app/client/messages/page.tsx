@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
-  CardFooter,
   CardDescription,
   CardHeader,
   CardTitle,
@@ -16,7 +15,6 @@ import { toast } from "sonner";
 import { type Message, getMessages, sendMessage } from "../../../lib/api";
 import { useAuth } from "@/contexts/auth-context";
 import { ProtectedRoute } from "@/components/protected-route";
-import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import {
   Paperclip,
@@ -24,15 +22,12 @@ import {
   X,
   CheckCircle,
   Clock,
-  RefreshCw,
   Send,
   MessageSquare,
 } from "lucide-react";
 import { Label } from "@/components/ui/label";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 function ClientMessages() {
-  const { user } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]); // Telling messages will be an array of 'Message' objects.
   const [loading, setLoading] = useState(true); // So, we can write "useState<boolean>(true)" also but ts understood bcz of 'true'
   const [activeTab, setActiveTab] = useState("newMessage");
@@ -371,22 +366,22 @@ function ClientMessages() {
                       {message.fileUrl && (
                         <div className="mt-2">
                           {message.fileUrl.match(/\.(jpg|jpeg|png)$/i) && (
-                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl, type: "image", message: message.content })}>
+                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl!, type: "image", message: message.content })}>
                               View Image
                             </Button>
                           )}
                           {message.fileUrl.match(/\.(mp3|wav|m4a)$/i) && (
-                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl, type: "audio", message: message.content })}>
+                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl!, type: "audio", message: message.content })}>
                               Play Audio
                             </Button>
                           )}
                           {message.fileUrl.match(/\.(mp4|webm|ogg)$/i) && (
-                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl, type: "video", message: message.content })}>
+                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl!, type: "video", message: message.content })}>
                               Play Video
                             </Button>
                           )}
                           {!message.fileUrl.match(/\.(jpg|jpeg|png|mp3|wav|m4a|mp4|webm|ogg)$/i) && (
-                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl, type: "file", message: message.content })}>
+                            <Button size="sm" variant="outline" onClick={() => setPreviewFile({ url: message.fileUrl!, type: "file", message: message.content })}>
                               View File
                             </Button>
                           )}

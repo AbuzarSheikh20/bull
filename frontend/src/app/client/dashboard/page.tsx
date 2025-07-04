@@ -358,7 +358,7 @@ function ClientDashboard() {
                     <h3 className="font-medium">Send a Message</h3>
                     <p className="text-sm text-muted-foreground">
                       Share your thoughts and concerns anonymously. Your message
-                      will be seen by the motivater of your gender
+                      will be seen by the motivator of your gender
                     </p>
                   </div>
                 </div>

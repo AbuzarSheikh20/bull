@@ -47,7 +47,7 @@ export default function MotivatorProfile() {
       setUserData(updated);
       setIsEditing(false);
       toast.success("Profile updated successfully!");
-    } catch (err) {
+    } catch {
       toast.error("Failed to update profile");
     } finally {
       setLoading(false);
@@ -248,7 +248,7 @@ export default function MotivatorProfile() {
                 <p className="text-muted-foreground">
                   Be empathetic, non-judgmental, and supportive in all your
                   communications. Focus on understanding and validating the
-                  user's feelings.
+                  user&apos;s feelings.
                 </p>
               </div>
               <div className="rounded-lg border bg-muted/50 p-4">

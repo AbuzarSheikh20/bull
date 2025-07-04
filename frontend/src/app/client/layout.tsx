@@ -1,6 +1,4 @@
 import React from "react";
-import { ClientNav } from "@/components/client-nav";
-import { MobileNav } from "@/components/mobile-nav";
 import { ClientSidebar } from "@/components/client-sidebar";
 import { ClientTopbar } from "@/components/client-topbar";
 
