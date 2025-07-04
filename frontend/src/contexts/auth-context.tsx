@@ -105,7 +105,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isLoading, setIsLoading] = useState(true)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [isClient, setIsClient] = useState(false)
   const router = useRouter()
 
   // Set isClient to true after component mounts to prevent hydration mismatch

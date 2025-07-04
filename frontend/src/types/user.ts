@@ -26,6 +26,7 @@ export interface UserData {
   specialities?: string;
   experience?: string;
   reason?: string;
+  profilePhoto?: File; // <-- Added for signup photo upload
 }
 
 export interface Response {
